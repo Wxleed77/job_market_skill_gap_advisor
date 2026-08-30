@@ -229,6 +229,17 @@ class LLMSynthesizer:
             return f"""React is prominently featured in frontend role postings (see {citations}). Employers are seeking developers comfortable with React, TypeScript, and modern build tools. The skill is often paired with Next.js for full-stack web development."""
         else:
             return f"""Based on the retrieved postings ({citations}), this is an important skill in the current market. The job market shows strong demand for this expertise across multiple companies and locations."""
+
+    def _normalize_answer(self, answer: Optional[str], query: str, chunks: List[Dict]) -> str:
+        """Return a safe string answer and fallback to a mock summary if the LLM returns blank output."""
+        if answer is None:
+            return self._generate_mock_answer(query, chunks)
+
+        normalized = str(answer).strip()
+        if not normalized or normalized.lower() in {"none", "null"}:
+            return self._generate_mock_answer(query, chunks)
+
+        return normalized
     
     
     def synthesize_specific_query(self, 
@@ -242,7 +253,11 @@ class LLMSynthesizer:
             Dict with answer and metadata
         """
         if self.llm:
-            answer = self.llm.synthesize_answer(query, retrieved_chunks)
+            answer = self._normalize_answer(
+                self.llm.synthesize_answer(query, retrieved_chunks),
+                query,
+                retrieved_chunks,
+            )
         else:
             answer = self._generate_mock_answer(query, retrieved_chunks)
         
@@ -299,7 +314,11 @@ Total postings analyzed: {len(retrieved_chunks)}
         full_prompt = f"{context}\n\nUser question: {query}"
         
         if self.llm:
-            answer = self.llm.synthesize_answer(full_prompt, retrieved_chunks, role_context=context)
+            answer = self._normalize_answer(
+                self.llm.synthesize_answer(full_prompt, retrieved_chunks, role_context=context),
+                query,
+                retrieved_chunks,
+            )
         else:
             answer = self._generate_mock_answer(query, retrieved_chunks)
         
