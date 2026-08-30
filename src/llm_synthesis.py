@@ -5,9 +5,30 @@ Supports multiple models accessible through a single unified interface.
 
 import os
 import json
+from pathlib import Path
 from typing import List, Optional, Dict
 import requests
 from dataclasses import dataclass
+
+
+def load_env_file() -> None:
+    """Load values from the project .env file if present."""
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if not env_path.exists():
+        return
+
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+load_env_file()
 
 @dataclass
 class LLMConfig:
