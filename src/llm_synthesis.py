@@ -212,7 +212,7 @@ class LLMSynthesizer:
             print("⚠ No LLM provided - using mock responses for demo")
     
     def _generate_mock_answer(self, query: str, chunks: List[Dict]) -> str:
-        """Generate a mock answer for testing without API."""
+        """Generate a structured, actionable mock answer for demo purposes."""
         postings_with_info = []
         for chunk in chunks[:3]:
             payload = chunk.get("payload", {})
@@ -220,15 +220,50 @@ class LLMSynthesizer:
         
         citations = ", ".join(postings_with_info)
         
-        # Simple mock answer based on query
-        if "kubernetes" in query.lower():
-            return f"""Based on the job postings analyzed (from {citations}), Kubernetes expertise is highly valued for DevOps and cloud infrastructure roles. Several organizations are actively hiring for positions requiring Kubernetes orchestration skills, Docker containerization, and cloud platform experience (AWS/GCP)."""
-        elif "python" in query.lower():
-            return f"""Python remains the most in-demand programming language across multiple roles - backend development, data analysis, machine learning, and DevOps automation. According to postings {citations}, Python proficiency is listed as a core requirement, often combined with frameworks like FastAPI, Django, or data science libraries."""
-        elif "react" in query.lower():
-            return f"""React is prominently featured in frontend role postings (see {citations}). Employers are seeking developers comfortable with React, TypeScript, and modern build tools. The skill is often paired with Next.js for full-stack web development."""
-        else:
-            return f"""Based on the retrieved postings ({citations}), this is an important skill in the current market. The job market shows strong demand for this expertise across multiple companies and locations."""
+        # Build skill frequency from chunks
+        skill_freq = {}
+        for chunk in chunks:
+            for skill in chunk.get("payload", {}).get("skills_extracted", []):
+                skill_freq[skill] = skill_freq.get(skill, 0) + 1
+        
+        top_skills = sorted(skill_freq.items(), key=lambda x: x[1], reverse=True)[:8]
+        
+        # Generate structured answer based on top skills
+        answer = "# Learning Path for Backend Roles\n\n"
+        
+        if top_skills:
+            answer += "## Priority Core Stack\nStart with these as they appear most frequently:\n\n"
+            for skill, count in top_skills[:3]:
+                answer += f"### {skill.title()}\n"
+                answer += f"- **Appears in:** {count} postings\n"
+                if skill.lower() == "python":
+                    answer += "- **Why:** Most universal backend language; easy to learn and highly versatile\n"
+                    answer += "- **Postings:** " + ", ".join([p.get("payload", {}).get("posting_id", "") for p in chunks if "python" in str(p.get("payload", {}).get("skills_extracted", [])).lower()]) + "\n\n"
+                elif skill.lower() == "fastapi":
+                    answer += "- **Why:** Modern Python web framework for building REST APIs with automatic OpenAPI docs\n"
+                    answer += "- **Learn After:** Python basics\n\n"
+                elif skill.lower() == "postgresql":
+                    answer += "- **Why:** Industry-standard relational database; essential for backend data management\n"
+                    answer += "- **Learn After:** Initial backend framework\n\n"
+                else:
+                    answer += f"- **Why:** Critical skill in current market demand\n\n"
+            
+            if len(top_skills) > 3:
+                answer += "\n## Also Worth Learning\nThese appear in multiple postings and add important skills:\n\n"
+                for skill, count in top_skills[3:6]:
+                    answer += f"- **{skill.title()}** ({count} postings): Extends your capabilities\n"
+                answer += "\n"
+            
+            if len(top_skills) > 6:
+                answer += "\n## Advanced/Specialized Skills\nFor senior roles or specialization:\n\n"
+                for skill, count in top_skills[6:]:
+                    answer += f"- **{skill.title()}** ({count} postings)\n"
+                answer += "\n"
+        
+        answer += f"\n## Recommended Learning Order\n1. **Python** - Master the fundamentals\n2. **FastAPI** - Build REST APIs\n3. **PostgreSQL** - Learn database design and SQL\n4. **Git & Docker** - Development workflow and containerization\n5. **Advanced skills** - Based on role specialization\n\n"
+        answer += f"*Based on analysis of {len(chunks)} backend job postings ({citations})*"
+        
+        return answer
 
     def _normalize_answer(self, answer: Optional[str], query: str, chunks: List[Dict]) -> str:
         """Return a safe string answer and fallback to a mock summary if the LLM returns blank output."""
@@ -302,6 +337,9 @@ class LLMSynthesizer:
             for skill, count in top_skills
         )
         
+        # Build mapping of skills to posting_ids for context
+        skill_to_postings = self._build_skill_posting_map(retrieved_chunks)
+        
         context = f"""
 Based on analysis of postings{f' in {city}' if city else ''}{f' for {role_category} roles' if role_category else ''}:
 
@@ -311,11 +349,32 @@ Top skills in demand:
 Total postings analyzed: {len(retrieved_chunks)}
 """
         
-        full_prompt = f"{context}\n\nUser question: {query}"
+        # Enhanced prompt for structured, actionable advice
+        role_context_str = f" for {role_category} roles" if role_category else ""
+        city_context_str = f" in {city}" if city else ""
+        
+        system_prompt = """You are a career advisor analyzing the job market.
+Provide structured, actionable learning paths with specific skill recommendations.
+For each skill, mention which postings require it.
+Be concrete about why each skill matters and in what order to learn them."""
+        
+        user_prompt = f"""Based on the top skills from {len(retrieved_chunks)} job postings{role_context_str}{city_context_str}:
+
+{skill_summary}
+
+User question: {query}
+
+Provide a structured learning path:
+1. **Priority Core Stack** - Start with these (appear most frequently)
+2. **Also Worth Learning** - Add these for broader opportunities  
+3. **Advanced/Specialized** - Learn these for senior roles
+4. **Practical Stack** - Suggest a concrete learning order
+
+Include posting IDs and explain why each skill matters."""
         
         if self.llm:
             answer = self._normalize_answer(
-                self.llm.synthesize_answer(full_prompt, retrieved_chunks, role_context=context),
+                self.llm.generate(user_prompt, system_prompt=system_prompt, max_tokens=2000),
                 query,
                 retrieved_chunks,
             )
@@ -335,3 +394,20 @@ Total postings analyzed: {len(retrieved_chunks)}
             "chunks_used": len(retrieved_chunks),
             "llm_available": self.llm is not None,
         }
+    
+    @staticmethod
+    def _build_skill_posting_map(chunks: List[Dict]) -> Dict[str, List[str]]:
+        """Build a map of skill -> list of posting_ids that require it."""
+        skill_map = {}
+        for chunk in chunks:
+            payload = chunk.get("payload", {})
+            posting_id = payload.get("posting_id", "unknown")
+            skills = payload.get("skills_extracted", [])
+            
+            for skill in skills:
+                if skill not in skill_map:
+                    skill_map[skill] = []
+                if posting_id not in skill_map[skill]:
+                    skill_map[skill].append(posting_id)
+        
+        return skill_map

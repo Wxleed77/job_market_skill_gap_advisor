@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Market Skill Gap Advisor</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 40px auto;
+      }
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+      }
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+      .subtitle {
+        font-size: 1.1em;
+        opacity: 0.95;
+      }
+      .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        padding: 30px;
+        margin-top: 20px;
+      }
+      .input-group {
+        margin-bottom: 20px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 100px;
+        font-size: 16px;
+        padding: 16px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 2px solid #e0e7ff;
+        font-family: inherit;
+        resize: vertical;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 14px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      #result {
+        margin-top: 30px;
+        min-height: 100px;
+      }
+      .meta {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 16px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+      .answer {
+        line-height: 1.8;
+        color: #1e293b;
+        margin: 20px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .answer h1, .answer h2, .answer h3 {
+        margin-top: 16px;
+        margin-bottom: 8px;
+        color: #667eea;
+      }
+      .answer h1 {
+        font-size: 1.5em;
+      }
+      .answer h2 {
+        font-size: 1.2em;
+      }
+      .answer h3 {
+        font-size: 1.05em;
+      }
+      .answer p {
+        margin-bottom: 12px;
+      }
+      .skills-section {
+        margin-top: 30px;
+      }
+      .skills-section strong {
+        display: block;
+        margin-bottom: 16px;
+        font-size: 1.1em;
+        color: #1e293b;
+      }
+      .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .skill {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        color: #667eea;
+        border: 1px solid #667eea40;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .loading {
+        color: #667eea;
+        font-style: italic;
+      }
+      .error {
+        color: #ef4444;
+        background: #fee2e2;
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #ef4444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎯 Job Market Skill Gap Advisor</h1>
+        <p class="subtitle">Get personalized learning recommendations based on current job market demand</p>
+      </div>
+
+      <div class="card">
+        <div class="input-group">
+          <textarea id="queryBox" placeholder="Ask something like: What should I learn for backend roles in Karachi?">What should I learn for backend roles?</textarea>
+          <button onclick="askQuestion()">Ask Advisor</button>
+        </div>
+        <div id="result"></div>
+      </div>
+    </div>
+
+    <script>
+      async function askQuestion() {
+        const query = document.getElementById('queryBox').value;
+        const resultEl = document.getElementById('result');
+        resultEl.innerHTML = '<div class="loading">Loading answer...</div>';
+
+        try {
+          const response = await fetch('http://127.0.0.1:8000/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          const skills = (data.top_skills || []).slice(0, 15);
+          
+          // Format the answer with proper markdown rendering
+          let formattedAnswer = data.answer || 'No answer returned.';
+          formattedAnswer = formattedAnswer
+            .replace(/\n/g, '<br/>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/^#{1}\s+(.*?)(?=<br|$)/gm, '<h1>$1</h1>')
+            .replace(/^#{2}\s+(.*?)(?=<br|$)/gm, '<h2>$1</h2>')
+            .replace(/^#{3}\s+(.*?)(?=<br|$)/gm, '<h3>$1</h3>');
+          
+          const filterStr = Object.entries(data.filters || {})
+            .filter(([_, v]) => v)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(', ') || 'None';
+          
+          resultEl.innerHTML = `
+            <div class="meta">
+              <strong>Query Type:</strong> ${data.query_type || 'unknown'}<br/>
+              <strong>Filters:</strong> ${filterStr}
+            </div>
+            <div class="answer">${formattedAnswer}</div>
+            <div class="skills-section">
+              <strong>📊 Top Skills in Demand (by frequency):</strong>
+              <div class="skills">
+                ${skills.map(skill => `<span class="skill">${skill[0]} <small>(${skill[1]})</small></span>`).join('')}
+              </div>
+            </div>
+          `;
+        } catch (error) {
+          resultEl.innerHTML = `<div class="error"><strong>Error:</strong> ${error.message}</div>`;
+        }
+      }
+      
+      // Allow Enter+Ctrl to submit
+      document.getElementById('queryBox').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          askQuestion();
+        }
+      });
+    </script>
+  </body>
+</html>
