@@ -9,6 +9,7 @@ Two modes of operation:
    -> Metadata filter for ALL matching postings -> skill frequency count -> LLM narration
 """
 
+import re
 from typing import List, Dict, Optional, Tuple
 from collections import Counter
 from src.chunking_embedding import QdrantVectorDB, EmbeddingEngine
@@ -18,55 +19,51 @@ from src.llm_synthesis import OpenRouterLLM, LLMSynthesizer
 class QueryClassifier:
     """Classify queries into specific vs aggregate modes."""
     
-    # Keywords indicating aggregate/analytical queries
-    AGGREGATE_KEYWORDS = [
-        "what should i learn",
-        "in demand",
-        "popular skills",
-        "trending",
-        "for [a-z]+ roles",  # "for AI roles", "for backend roles"
-        "across",
-        "summary of",
-        "overview of",
-        "analyze",
+    # Regex patterns for aggregate/analytical queries
+    AGGREGATE_PATTERNS = [
+        r"\bwhat should i learn\b",
+        r"\bwhat skills\b",
+        r"\bwhich skills\b",
+        r"\bwhat technologies\b",
+        r"\bpopular skills\b",
+        r"\btrending skills\b",
+        r"\bfor .*roles?\b",
+        r"\bfor .*engineers?\b",
+        r"\bsummary of\b",
+        r"\boverview of\b",
+        r"\banalyze\b",
+        r"\bin demand\b",
     ]
     
-    # Keywords indicating specific retrieval queries
-    SPECIFIC_KEYWORDS = [
-        "show me",
-        "find me",
-        "postings",
-        "job that",
-        "looking for",
-        "want",
-        "require",
-        "hiring for",
+    # Regex patterns for specific retrieval queries
+    SPECIFIC_PATTERNS = [
+        r"\bshow me\b",
+        r"\bfind me\b",
+        r"\bfind jobs?\b",
+        r"\bpostings?\b",
+        r"\bjobs?\b",
+        r"\bjob that\b",
+        r"\blooking for\b",
+        r"\bwant\b",
+        r"\brequire\b",
+        r"\bhiring for\b",
     ]
     
     @staticmethod
     def classify(query: str) -> str:
-        """
-        Classify query as 'specific' or 'aggregate'.
-        
-        Returns:
-            'specific' or 'aggregate'
-        """
+        """Classify query as 'specific' or 'aggregate'."""
         query_lower = query.lower()
-        
-        # Check aggregate keywords first (more specific)
-        for keyword in QueryClassifier.AGGREGATE_KEYWORDS:
-            if keyword.replace("[a-z]+ ", "").lower() in query_lower:
-                return "aggregate"
-        
-        # Check specific keywords
-        for keyword in QueryClassifier.SPECIFIC_KEYWORDS:
-            if keyword in query_lower:
-                return "specific"
-        
-        # Default: if it sounds like a general question, aggregate
+
+        if any(re.search(pattern, query_lower) for pattern in QueryClassifier.AGGREGATE_PATTERNS):
+            return "aggregate"
+
+        if any(re.search(pattern, query_lower) for pattern in QueryClassifier.SPECIFIC_PATTERNS):
+            return "specific"
+
+        # Default: if it is a general question, treat it as aggregate
         if "?" in query:
             return "aggregate"
-        
+
         return "specific"
     
     @staticmethod
