@@ -270,11 +270,13 @@ class LLMSynthesizer:
         if answer is None:
             return self._generate_mock_answer(query, chunks)
 
-        normalized = str(answer).strip()
-        if not normalized or normalized.lower() in {"none", "null"}:
+        try:
+            normalized = str(answer).strip()
+            if not normalized or normalized.lower() in {"none", "null", ""}:
+                return self._generate_mock_answer(query, chunks)
+            return normalized
+        except Exception:
             return self._generate_mock_answer(query, chunks)
-
-        return normalized
     
     
     def synthesize_specific_query(self, 
