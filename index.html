@@ -3,178 +3,403 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Job Market Skill Gap Advisor</title>
+    <title>Gap/Advisor — Job-Market Skill Gap Advisor</title>
+    <meta name="description" content="What should you learn next? Grounded advice drawn from live job postings, not blog hype." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      :root {
+        --bg: #f2f0ea;
+        --surface: #fbfaf7;
+        --surface-2: #f4f2ec;
+        --ink: #16181e;
+        --ink-soft: #3d4148;
+        --muted: #6f6f67;
+        --line: #e3e0d6;
+        --line-strong: #cfcbc0;
+        --accent: #0c7a45;
+        --accent-deep: #0a5c36;
+        --accent-bg: #e7f2ea;
+        --danger: #b3261e;
+        --danger-bg: #fbeae8;
+        --radius: 8px;
+        --maxw: 880px;
       }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
       }
-      .container {
-        max-width: 1000px;
-        margin: 40px auto;
+
+      .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+      kbd {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px;
+        background: #fff;
+        border: 1px solid var(--line-strong);
+        border-bottom-width: 2px;
+        border-radius: 4px;
+        padding: 1px 5px;
+        color: var(--muted);
       }
-      .header {
-        text-align: center;
-        color: white;
-        margin-bottom: 40px;
+
+      /* ---- Masthead ---- */
+      .masthead { border-bottom: 1px solid var(--line); background: var(--bg); }
+      .masthead-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
       }
-      h1 {
-        font-size: 2.5em;
-        margin-bottom: 10px;
+      .wordmark {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 20px;
         font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        text-decoration: none;
       }
-      .subtitle {
-        font-size: 1.1em;
-        opacity: 0.95;
+      .wordmark span { color: var(--accent); }
+      .masthead-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 12px;
+        color: var(--muted);
       }
-      .card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        padding: 30px;
-        margin-top: 20px;
+      .live { display: inline-flex; align-items: center; gap: 7px; }
+      .live-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2.2s infinite;
       }
-      .input-group {
-        margin-bottom: 20px;
+      @keyframes pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(12,122,69,0.35); }
+        70%  { box-shadow: 0 0 0 6px rgba(12,122,69,0); }
+        100% { box-shadow: 0 0 0 0 rgba(12,122,69,0); }
       }
+      .ver { border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; }
+      /* ---- Hero ---- */
+      .hero { padding: 72px 0 40px; }
+      .eyebrow {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 18px;
+      }
+      .hero h1 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(34px, 6vw, 54px);
+        line-height: 1.04;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        max-width: 16ch;
+      }
+      .hero h1 .accent { color: var(--accent); }
+      .lede { margin-top: 22px; font-size: 18px; color: var(--ink-soft); max-width: 56ch; }
+
+      /* ---- Query ---- */
+      .query { padding: 8px 0 40px; }
+      .field-label {
+        display: block;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+      .field {
+        display: flex;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        padding: 10px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
       textarea {
-        width: 100%;
-        min-height: 100px;
-        font-size: 16px;
-        padding: 16px;
-        box-sizing: border-box;
-        border-radius: 10px;
-        border: 2px solid #e0e7ff;
-        font-family: inherit;
-        resize: vertical;
-      }
-      textarea:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      }
-      button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        flex: 1;
         border: none;
-        border-radius: 10px;
-        padding: 14px 32px;
+        background: transparent;
+        resize: vertical;
+        min-height: 60px;
+        padding: 6px 4px;
+        font-family: 'Inter', sans-serif;
         font-size: 16px;
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      textarea:focus { outline: none; }
+      textarea::placeholder { color: var(--muted); opacity: 0.8; }
+
+      .ask-btn {
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        min-width: 108px;
+        border: none;
+        border-radius: 5px;
+        background: var(--ink);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
         font-weight: 600;
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: background 0.15s;
       }
-      button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      .ask-btn:hover { background: var(--accent-deep); }
+      .ask-btn:active { transform: translateY(1px); }
+      .ask-btn:disabled { background: var(--line-strong); cursor: default; }
+
+      .examples { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-top: 14px; }
+      .examples-label {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 12px;
+        color: var(--muted);
+        margin-right: 4px;
       }
-      button:active {
-        transform: translateY(0);
+      .example {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--ink-soft);
+        padding: 6px 13px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
       }
-      #result {
-        margin-top: 30px;
-        min-height: 100px;
-      }
-      .meta {
-        font-size: 14px;
-        color: #64748b;
-        margin-bottom: 16px;
-        padding: 12px;
-        background: #f8fafc;
-        border-radius: 8px;
-        border-left: 4px solid #667eea;
-      }
-      .answer {
-        line-height: 1.8;
-        color: #1e293b;
-        margin: 20px 0;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-      }
-      .answer h1, .answer h2, .answer h3 {
-        margin-top: 16px;
-        margin-bottom: 8px;
-        color: #667eea;
-      }
-      .answer h1 {
-        font-size: 1.5em;
-      }
-      .answer h2 {
-        font-size: 1.2em;
-      }
-      .answer h3 {
-        font-size: 1.05em;
-      }
-      .answer p {
-        margin-bottom: 12px;
-      }
-      .skills-section {
-        margin-top: 30px;
-      }
-      .skills-section strong {
-        display: block;
-        margin-bottom: 16px;
-        font-size: 1.1em;
-        color: #1e293b;
-      }
-      .skills {
+      .example:hover { border-color: var(--accent); color: var(--accent); }
+
+      /* ---- Result head ---- */
+      .result { padding-bottom: 72px; }
+      .meta-strip {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px 28px;
+        padding: 16px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
       }
-      .skill {
-        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-        color: #667eea;
-        border: 1px solid #667eea40;
-        border-radius: 999px;
-        padding: 8px 14px;
-        font-size: 14px;
+      .meta-item { display: flex; align-items: baseline; gap: 8px; }
+      .meta-k {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .meta-v { color: var(--ink); font-weight: 500; }
+
+      .answer {
+        margin-top: 32px;
+        padding-left: 22px;
+        border-left: 3px solid var(--accent);
+        color: var(--ink-soft);
+        font-size: 16px;
+        line-height: 1.75;
+      }
+      .answer h1, .answer h2, .answer h3 {
+        font-family: 'Space Grotesk', sans-serif;
+        color: var(--ink);
+        margin: 26px 0 10px;
+        letter-spacing: -0.01em;
+      }
+      .answer h1 { font-size: 26px; }
+      .answer h2 { font-size: 21px; }
+      .answer h3 { font-size: 18px; }
+      .answer p { margin: 0 0 14px; }
+      .answer ul, .answer ol { margin: 0 0 14px; padding-left: 22px; }
+      /* ---- Skills bars ---- */
+      .skills-block { margin-top: 44px; }
+      .skills-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+      .skills-head h2 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 20px;
         font-weight: 600;
+        letter-spacing: -0.01em;
       }
-      .loading {
-        color: #667eea;
-        font-style: italic;
+      .skills-note { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+      .bars { display: flex; flex-direction: column; gap: 9px; }
+      .bar { display: grid; grid-template-columns: 150px 1fr 44px; align-items: center; gap: 14px; }
+      .bar-name { font-size: 14px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .bar-track { background: var(--surface-2); border-radius: 3px; height: 10px; overflow: hidden; }
+      .bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
+      .bar-count { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--muted); text-align: right; }
+
+      /* ---- Load / error ---- */
+      .loading { display: flex; align-items: center; gap: 12px; padding: 36px 0; color: var(--muted); font-size: 15px; }
+      .spinner {
+        width: 16px; height: 16px; border-radius: 50%;
+        border: 2px solid var(--accent-bg);
+        border-top-color: var(--accent);
+        animation: spin 0.8s linear infinite;
       }
+      @keyframes spin { to { transform: rotate(360deg); } }
       .error {
-        color: #ef4444;
-        background: #fee2e2;
-        padding: 12px;
-        border-radius: 8px;
-        border-left: 4px solid #ef4444;
+        margin-top: 32px;
+        border: 1px solid var(--danger);
+        background: var(--danger-bg);
+        color: var(--danger);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        font-size: 14px;
+      }
+
+      /* ---- Footer ---- */
+      .footer { border-top: 1px solid var(--line); padding: 26px 0 40px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+
+      @media (max-width: 560px) {
+        .hero { padding: 48px 0 32px; }
+        .field { flex-direction: column; }
+        .ask-btn { min-height: 48px; }
+        .bar { grid-template-columns: 110px 1fr 40px; gap: 10px; }
+        .bar-name { font-size: 13px; }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1>🎯 Job Market Skill Gap Advisor</h1>
-        <p class="subtitle">Get personalized learning recommendations based on current job market demand</p>
-      </div>
-
-      <div class="card">
-        <div class="input-group">
-          <textarea id="queryBox" placeholder="Ask something like: What should I learn for backend roles in Karachi?">What should I learn for backend roles?</textarea>
-          <button onclick="askQuestion()">Ask Advisor</button>
+    <header class="masthead">
+      <div class="masthead-inner container">
+        <a class="wordmark" href="/">Gap<span>/</span>Advisor</a>
+        <div class="masthead-meta">
+          <span class="live"><span class="live-dot"></span>live postings</span>
+          <span class="ver">v0.1</span>
         </div>
-        <div id="result"></div>
       </div>
-    </div>
+    </header>
 
+    <main class="container">
+      <section class="hero">
+        <p class="eyebrow">Job-market intelligence &middot; Pakistan</p>
+        <h1>Decide what to learn, <span class="accent">with evidence.</span></h1>
+        <p class="lede">
+          Recommendations grounded in live job postings &mdash; the skills employers are
+          actually requesting, filtered by role and city.
+        </p>
+      </section>
+
+      <section class="query">
+        <label class="field-label" for="queryBox">Ask about the market</label>
+        <div class="field">
+          <textarea id="queryBox" placeholder="What should I learn for AI roles in Karachi?">What should I learn for backend roles?</textarea>
+          <button class="ask-btn" id="askBtn" onclick="askQuestion()">
+            Ask<kbd>Ctrl&nbsp;&crarr;</kbd>
+          </button>
+        </div>
+        <div class="examples">
+          <span class="examples-label">Try</span>
+          <button class="example" data-q="What should I learn for backend roles in Karachi?">backend &middot; Karachi</button>
+          <button class="example" data-q="What should I learn for AI roles?">AI roles</button>
+          <button class="example" data-q="What should I learn for mobile dev roles in Lahore?">mobile &middot; Lahore</button>
+        </div>
+      </section>
+
+      <section id="result" class="result" hidden></section>
+    </main>
+
+    <footer class="footer container">
+      Sourced from normalized postings &middot; answers list the underlying posting IDs
+    </footer>
     <script>
+      const $q = (id) => document.getElementById(id);
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // Same formatting contract as before: newlines, **bold**, *italic*,
+      // and #/##/### headings.
+      function formatAnswer(text) {
+        return text
+          .replace(/\n/g, '<br/>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/^#{1}\s+(.*?)(?=<br|$)/gm, '<h1>$1</h1>')
+          .replace(/^#{2}\s+(.*?)(?=<br|$)/gm, '<h2>$1</h2>')
+          .replace(/^#{3}\s+(.*?)(?=<br|$)/gm, '<h3>$1</h3>');
+      }
+
+      function barMarkup(name, count, max) {
+        const width = max > 0 ? Math.max(4, Math.round((count / max) * 100)) : 0;
+        return (
+          '<div class="bar">' +
+          '<span class="bar-name" title="' + escapeHtml(name) + '">' + escapeHtml(name) + '</span>' +
+          '<span class="bar-track"><span class="bar-fill" style="width:' + width + '%"></span></span>' +
+          '<span class="bar-count">' + escapeHtml(count) + '</span>' +
+          '</div>'
+        );
+      }
+
+      function renderResult(data) {
+        const resultEl = $q('result');
+        const skills = (data.top_skills || []).slice(0, 15);
+
+        const filterStr = Object.entries(data.filters || {})
+          .filter(([_, v]) => v)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(', ') || 'none';
+
+        resultEl.innerHTML = '';
+
+        const strip = document.createElement('div');
+        strip.className = 'meta-strip';
+        strip.innerHTML =
+          '<div class="meta-item"><span class="meta-k">Query</span>' +
+          '<span class="meta-v">' + escapeHtml(data.query_type || 'unknown') + '</span></div>' +
+          '<div class="meta-item"><span class="meta-k">Filters</span>' +
+          '<span class="meta-v">' + escapeHtml(filterStr) + '</span></div>';
+        resultEl.appendChild(strip);
+
+        const answer = document.createElement('div');
+        answer.className = 'answer';
+        answer.innerHTML = formatAnswer(data.answer || 'No answer returned.');
+        resultEl.appendChild(answer);
+
+        if (skills.length > 0) {
+          const max = skills[0][1];
+          const block = document.createElement('div');
+          block.className = 'skills-block';
+          block.innerHTML =
+            '<div class="skills-head"><h2>Most requested skills</h2>' +
+            '<span class="skills-note">by posting frequency</span></div>' +
+            '<div class="bars">' + skills.map(([name, count]) => barMarkup(name, count, max)).join('') + '</div>';
+          resultEl.appendChild(block);
+        }
+      }
+
       async function askQuestion() {
-        const query = document.getElementById('queryBox').value;
-        const resultEl = document.getElementById('result');
-        resultEl.innerHTML = '<div class="loading">Loading answer...</div>';
+        const query = $q('queryBox').value;
+        const resultEl = $q('result');
+        const btn = $q('askBtn');
+        resultEl.hidden = false;
+        resultEl.innerHTML =
+          '<div class="loading"><span class="spinner"></span>Searching postings&hellip;</div>';
+        btn.disabled = true;
 
         try {
           const response = await fetch('http://127.0.0.1:8000/query', {
@@ -187,47 +412,29 @@
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
-          const data = await response.json();
-          const skills = (data.top_skills || []).slice(0, 15);
-          
-          // Format the answer with proper markdown rendering
-          let formattedAnswer = data.answer || 'No answer returned.';
-          formattedAnswer = formattedAnswer
-            .replace(/\n/g, '<br/>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/^#{1}\s+(.*?)(?=<br|$)/gm, '<h1>$1</h1>')
-            .replace(/^#{2}\s+(.*?)(?=<br|$)/gm, '<h2>$1</h2>')
-            .replace(/^#{3}\s+(.*?)(?=<br|$)/gm, '<h3>$1</h3>');
-          
-          const filterStr = Object.entries(data.filters || {})
-            .filter(([_, v]) => v)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(', ') || 'None';
-          
-          resultEl.innerHTML = `
-            <div class="meta">
-              <strong>Query Type:</strong> ${data.query_type || 'unknown'}<br/>
-              <strong>Filters:</strong> ${filterStr}
-            </div>
-            <div class="answer">${formattedAnswer}</div>
-            <div class="skills-section">
-              <strong>📊 Top Skills in Demand (by frequency):</strong>
-              <div class="skills">
-                ${skills.map(skill => `<span class="skill">${skill[0]} <small>(${skill[1]})</small></span>`).join('')}
-              </div>
-            </div>
-          `;
+          renderResult(await response.json());
         } catch (error) {
-          resultEl.innerHTML = `<div class="error"><strong>Error:</strong> ${error.message}</div>`;
+          resultEl.innerHTML =
+            '<div class="error"><strong>Error</strong> &middot; ' + escapeHtml(error.message) + '</div>';
+        } finally {
+          btn.disabled = false;
         }
       }
-      
-      // Allow Enter+Ctrl to submit
-      document.getElementById('queryBox').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.ctrlKey) {
+
+      // Ctrl+Enter (or Cmd+Enter) submits, exactly as before.
+      $q('queryBox').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
           askQuestion();
         }
+      });
+
+      // Example prompts fill the query box and submit.
+      document.querySelectorAll('.example').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          $q('queryBox').value = chip.dataset.q;
+          askQuestion();
+        });
       });
     </script>
   </body>
