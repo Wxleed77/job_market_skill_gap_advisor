@@ -281,7 +281,7 @@
   <body>
     <header class="masthead">
       <div class="masthead-inner container">
-        <a class="wordmark" href="/">Gap<span>/</span>Advisor</a>
+        <a class="wordmark" href="index.html" id="homeLink">Gap<span>/</span>Advisor</a>
         <div class="masthead-meta">
           <span class="live"><span class="live-dot"></span>live postings</span>
           <span class="ver">v0.1</span>
@@ -419,6 +419,19 @@
         } finally {
           btn.disabled = false;
         }
+      }
+
+      // The wordmark used to be href="/", which on a server rooted at the
+      // project's parent directory jumped to that root and showed a drive /
+      // directory listing. Keep it firmly on this page: block navigation and
+      // scroll back to the top.
+      const homeLink = $q('homeLink');
+      if (homeLink) {
+        homeLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          $q('queryBox').focus();
+        });
       }
 
       // Ctrl+Enter (or Cmd+Enter) submits, exactly as before.
