@@ -1,0 +1,36 @@
+# Job-Market Skill-Gap Advisor backend dependencies
+# Python 3.12 (venv at ./venv)
+#
+# Install all at once:
+#   py -3 -m venv venv
+#   venv\Scripts\activate        (or run with: & .\venv\Scripts\python.exe -m pip ...)
+#   python -m pip install -r requirements.txt
+#
+# Then install the spaCy NER model (see note below):
+#   python -m spacy download en_core_web_sm
+#
+# To start the API:
+#   python src/api.py            -> http://127.0.0.1:8000
+
+# --- Web API (src/api.py) ---
+fastapi>=0.111,<1.0
+# uvicorn[standard] adds websockets, watchfiles, dotenv etc.
+uvicorn[standard]>=0.30
+pydantic>=2,<3            # request/response models (used by fastapi)
+
+# --- LLM synthesis (src/llm_synthesis.py, OpenRouter) ---
+requests>=2.31
+
+# --- Vector store (src/chunking_embedding.py) ---
+qdrant-client>=1.12,<2.0
+
+# --- Embeddings (BAAI/bge-small-en-v1.5 via fastembed, 384-dim) ---
+# First run auto-downloads the ONNX model from Hugging Face (~130 MB).
+fastembed>=0.3,<1.0
+
+# --- Skill extraction (src/skill_extraction.py) ---
+spacy>=3.7,<4.0
+# NER model for the spaCy path:
+#   python -m spacy download en_core_web_sm
+# (If missing, the code falls back to keyword-only extraction, so the
+#  server still starts without it.)
