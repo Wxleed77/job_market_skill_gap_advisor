@@ -73,7 +73,7 @@ class OpenRouterLLM:
         self.model = self.AVAILABLE_MODELS.get(model, model)
         self.base_url = "https://openrouter.ai/api/v1"
         
-        print(f"✓ OpenRouter LLM initialized with model: {self.model}")
+        print(f"[OK] OpenRouter LLM initialized with model: {self.model}")
     
     def generate(self, 
                 prompt: str, 
@@ -209,7 +209,7 @@ class LLMSynthesizer:
         """
         self.llm = llm
         if llm is None:
-            print("⚠ No LLM provided - using mock responses for demo")
+            print("[WARN] No LLM provided - using mock responses for demo")
     
     def _generate_mock_answer(self, query: str, chunks: List[Dict]) -> str:
         """Generate a structured, actionable mock answer for demo purposes."""
